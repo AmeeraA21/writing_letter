@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Write yourself a letter &lt;3</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ===== 1. COLOUR THEME: change the brick palette here ===== */
+:root{
+  --brick:#9a3b2c;      /* main brick red */
+  --brick-dark:#5f2118; /* shadows, text */
+  --brick-deep:#3e1410; /* overlay */
+  --brick-light:#c8654d;/* highlights */
+  --mortar:#b9715f;     /* lines between bricks */
+  --paper:#e9c4b3;      /* paper (brick-tinted) */
+  --ink:#4a160f;
+  --serif:'IM Fell English',Georgia,serif;
+  --type:'Special Elite','Courier New',monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--brick);color:var(--paper);font-family:var(--serif)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+/* ===== 2. BRICK WALL BACKGROUND: size of bricks = the 60px / 30px values ===== */
+body{
+  background-color:var(--brick);
+  background-image:
+    linear-gradient(var(--mortar) 3px,transparent 3px),
+    linear-gradient(90deg,var(--mortar) 3px,transparent 3px),
+    linear-gradient(90deg,var(--mortar) 3px,transparent 3px);
+  background-size:60px 30px,60px 60px,60px 60px;
+  background-position:0 0,0 0,30px 30px;
+  background-attachment:fixed;
+}
+.frame{display:none;min-height:100vh;padding:24px 16px 60px;text-align:center}
+.frame.on{display:block}
+h1,h2{font-weight:400;margin:0;text-shadow:2px 2px 0 var(--brick-dark)}
+.btn{font-family:var(--type);font-size:1.05rem;background:var(--paper);color:var(--brick-dark);border:3px solid var(--brick-dark);
+  padding:12px 22px;border-radius:4px;cursor:pointer;box-shadow:4px 4px 0 var(--brick-dark);transition:transform .1s}
+.btn:hover{transform:translate(-2px,-2px)}.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--brick-dark)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ===== FRAME 1 ===== */
+#f1 h1{font-size:clamp(1.8rem,6vw,3rem);margin-top:10px}
+#f1 p.sub{margin:8px 0 26px;font-style:italic}
+#writeBtn{font-size:1.3rem;margin-bottom:26px}
+.postbox{width:min(260px,70vw);filter:drop-shadow(0 14px 8px rgba(40,8,4,.55))}
+.box-wrap{display:flex;justify-content:center}
+
+/* ===== OVERLAY (quill + paper) ===== */
+#desk{position:fixed;inset:0;background:rgba(62,20,16,.92);display:none;align-items:center;justify-content:center;padding:16px;z-index:10;overflow:auto}
+#desk.on{display:flex}
+.deskin{width:min(560px,100%);position:relative}
+.x{position:absolute;right:-4px;top:-14px;background:none;border:0;color:var(--paper);font-size:2rem;cursor:pointer}
+.bubble{background:var(--paper);color:var(--ink);border:3px solid var(--brick-dark);border-radius:22px;padding:18px;position:relative;margin-bottom:26px;font-size:1.15rem}
+.bubble:after{content:"";position:absolute;bottom:-17px;left:44px;border:10px solid transparent;border-top:14px solid var(--brick-dark)}
+.choices{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.choices .btn{font-size:.95rem;padding:9px 14px}
+.tag{display:inline-block;font-family:var(--type);background:var(--brick-dark);color:var(--paper);padding:4px 12px;border-radius:14px;margin-bottom:10px;font-size:.9rem}
+#sheetBox{display:none}#sheetBox.on{display:block}
+.sheet{position:relative;background:var(--paper);border-radius:3px;box-shadow:0 10px 0 var(--brick-dark),0 20px 30px rgba(0,0,0,.5);margin-bottom:22px}
+/* textarea + mirror MUST share identical font / padding / line-height */
+.sheet textarea,.mirror{font:18px/28px var(--type);padding:20px 22px;width:100%;margin:0;border:0;letter-spacing:0;white-space:pre-wrap;word-wrap:break-word}
+.sheet textarea{display:block;height:280px;resize:none;overflow:hidden;background:repeating-linear-gradient(transparent 0 27px,rgba(154,59,44,.35) 27px 28px);background-position:0 20px;color:var(--ink);outline:none}
+.mirror{position:absolute;inset:0;visibility:hidden;pointer-events:none}
+#quill{position:absolute;width:64px;height:64px;pointer-events:none;transition:left .12s ease-out,top .12s ease-out;transform-origin:4px 60px}
+#quill.w{animation:wig .18s}
+@keyframes wig{50%{transform:rotate(-12deg)}}
+.sig{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+.sig input{font:1rem var(--type);padding:10px;border:3px solid var(--brick-dark);background:var(--paper);color:var(--ink);border-radius:4px;width:190px}
+.cnt{font-family:var(--type);font-size:.85rem;text-align:right;padding:0 12px 6px;color:var(--brick-dark)}
+
+/* ===== FRAME 2: NOTICE BOARD ===== */
+.board{max-width:1100px;margin:22px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:left}
+.col{background:var(--brick-dark);border:6px solid #3a110c;border-radius:6px;padding:10px;min-height:260px;box-shadow:inset 0 0 20px rgba(0,0,0,.45)}
+.col h3{font:400 1.2rem var(--type);text-align:center;margin:4px 0 12px;color:var(--paper);border-bottom:2px dashed var(--mortar);padding-bottom:8px}
+.note{position:relative;background:var(--paper);color:var(--ink);padding:18px 12px 10px;margin:0 0 18px;box-shadow:3px 4px 6px rgba(0,0,0,.5);font:.95rem/1.35 var(--type);transform:rotate(var(--r,0deg))}
+.note:before{content:"";position:absolute;top:-5px;left:50%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--brick);border:2px solid var(--brick-dark)}
+.note .t{max-height:150px;overflow:auto;white-space:pre-wrap;word-wrap:break-word}
+.note .n{margin-top:8px;text-align:right;font-style:italic;color:var(--brick)}
+.note.new{animation:drop .7s}
+@keyframes drop{from{transform:translateY(-60px) rotate(8deg);opacity:0}}
+.empty{text-align:center;font-style:italic;opacity:.7;padding:20px 0}
+#status{font-size:.85rem;margin-top:10px;opacity:.85}
+@media(max-width:800px){.board{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ============ FRAME 1 ============ -->
+<section class="frame on" id="f1">
+  <!-- ===== 3. TITLE / SUBTITLE TEXT ===== -->
+  <h1>Write yourself a letter &lt;3</h1>
+  <p class="sub">Sip on teh tarik while you're diffusing. Confess what you cannot say aloud.</p>
+  <button class="btn" id="writeBtn">✒ Write your letter</button>
+
+  <div class="box-wrap">
+  <!-- ===== 4. 1960s MALAYSIAN PILLAR BOX (SVG): edit the shapes / text here ===== -->
+  <svg class="postbox" viewBox="0 0 220 360" role="img" aria-label="1960s Malaysian red pillar post box">
+    <ellipse cx="110" cy="345" rx="84" ry="12" fill="#2c0b08" opacity=".6"/>
+    <defs><linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#5f2118"/><stop offset=".35" stop-color="#c8654d"/><stop offset=".7" stop-color="#9a3b2c"/><stop offset="1" stop-color="#4a160f"/></linearGradient></defs>
+    <rect x="40" y="318" width="140" height="24" rx="4" fill="url(#g)" stroke="#3a110c" stroke-width="3"/>
+    <rect x="48" y="70" width="124" height="252" fill="url(#g)" stroke="#3a110c" stroke-width="3"/>
+    <path d="M38 76 Q38 22 110 18 Q182 22 182 76 Z" fill="url(#g)" stroke="#3a110c" stroke-width="3"/>
+    <rect x="34" y="70" width="152" height="14" rx="3" fill="url(#g)" stroke="#3a110c" stroke-width="3"/>
+    <circle cx="110" cy="14" r="8" fill="#9a3b2c" stroke="#3a110c" stroke-width="3"/>
+    <rect x="68" y="112" width="84" height="16" rx="8" fill="#1f0705"/><!-- slot -->
+    <rect x="62" y="150" width="96" height="44" rx="3" fill="#e9c4b3" stroke="#3a110c" stroke-width="3"/>
+    <text x="110" y="180" text-anchor="middle" font-family="Special Elite,Courier New,monospace" font-size="26" fill="#5f2118">POS</text>
+    <text x="110" y="226" text-anchor="middle" font-family="Special Elite,Courier New,monospace" font-size="11" fill="#e9c4b3">PERSEKUTUAN TANAH MELAYU</text>
+    <text x="110" y="244" text-anchor="middle" font-family="Special Elite,Courier New,monospace" font-size="11" fill="#e9c4b3">LETTERS · SURAT</text>
+    <rect x="76" y="262" width="68" height="40" rx="2" fill="none" stroke="#3a110c" stroke-width="3"/>
+    <circle cx="110" cy="282" r="3" fill="#3a110c"/>
+  </svg>
+  </div>
+</section>
+
+<!-- ============ OVERLAY: bubble, quill, paper ============ -->
+<div id="desk" role="dialog" aria-modal="true">
+  <div class="deskin">
+    <button class="x" id="closeDesk" aria-label="Close">×</button>
+
+    <!-- ===== 5. THE QUESTION BUBBLE + CATEGORIES (labels here, keys in JS CLASSES) ===== -->
+    <div class="bubble" id="bubble">
+      <div>Before you write, tell me honestly: are you a skincare junkie?</div>
+      <div class="choices">
+        <button class="btn" data-c="junkie">Yes, a junkie 🧴</button>
+        <button class="btn" data-c="maybe">Maybe…</button>
+        <button class="btn" data-c="no">No</button>
+      </div>
+    </div>
+
+    <div id="sheetBox">
+      <span class="tag" id="tag"></span>
+      <div class="sheet" id="sheet">
+        <textarea id="ta" maxlength="360" placeholder="Dear stranger…" aria-label="Your letter"></textarea>
+        <div class="mirror" id="mirror"></div>
+        <svg id="quill" viewBox="0 0 64 64"><path d="M4 60 L12 46 C20 20 42 8 60 4 C56 22 44 42 18 52 Z" fill="#c8654d" stroke="#3a110c" stroke-width="2"/><path d="M4 60 L40 24" stroke="#3a110c" stroke-width="2"/></svg>
+        <div class="cnt"><span id="cnt">0</span>/360</div>
+      </div>
+      <div class="sig">
+        <input id="nm" maxlength="24" placeholder="Sign as (optional)">
+        <button class="btn" id="post" disabled>Post letter ➜</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FRAME 2 ============ -->
+<section class="frame" id="f2">
+  <h2 style="font-size:clamp(1.7rem,5vw,2.6rem)">The Notice Board</h2>
+  <p class="sub" style="font-style:italic">Every confession, pinned for the town to read.</p>
+  <button class="btn" id="again">✒ Write another letter</button>
+  <div class="board" id="board"></div>
+  <div id="status"></div>
+</section>
+
+<script>
+/* ===== 6. CATEGORIES: add/rename classes here (key: label). Also add a button in the bubble HTML ===== */
+const CLASSES={junkie:'Skincare Junkies',maybe:'Maybe-ers',no:'Not Skincare People'};
+const KEY='scarlet_letters_v1';      // localStorage key
+const MIN_CHARS=10;                  // ===== 7. minimum letter length =====
+
+const $=id=>document.getElementById(id);
+let cls=null,remote=[],local=load(),db=null,newId=null;
+
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(local))}catch(e){}}
+
+/* ---- shared storage (works only when the viewer is signed in) ---- */
+(async()=>{
+  try{
+    if(!window.claude||!claude.use)return;
+    const d=await claude.use('db'); if(!d)return;
+    db=d;
+    d.collection('letters').onSnapshot(s=>{remote=s.docs.map(x=>({id:x.id,...x.data()}));render();status()},()=>{});
+  }catch(e){}
+})();
+function status(){$('status').textContent=db?'Board is shared with other signed-in visitors.':'Showing letters saved on this device only.'}
+status();
+
+/* ---- frame switching ---- */
+function show(id){document.querySelectorAll('.frame').forEach(f=>f.classList.toggle('on',f.id===id));window.scrollTo(0,0)}
+
+/* ---- open / close desk ---- */
+function openDesk(){
+  cls=null;$('ta').value='';$('nm').value='';$('cnt').textContent=0;$('post').disabled=true;
+  $('bubble').style.display='';$('sheetBox').classList.remove('on');
+  $('desk').classList.add('on');
+}
+$('writeBtn').onclick=openDesk;$('again').onclick=()=>{show('f1');openDesk()};
+$('closeDesk').onclick=()=>$('desk').classList.remove('on');
+
+/* ---- bubble choice, then quill + paper appear ---- */
+document.querySelectorAll('.choices .btn').forEach(b=>b.onclick=()=>{
+  cls=b.dataset.c;
+  $('tag').textContent='Class: '+CLASSES[cls];
+  $('bubble').style.display='none';$('sheetBox').classList.add('on');
+  moveQuill();$('ta').focus();
+});
+
+/* ---- quill follows the caret (mirror div trick) ---- */
+const ta=$('ta'),mir=$('mirror'),q=$('quill');
+function moveQuill(){
+  mir.textContent=ta.value;
+  const s=document.createElement('span');s.textContent='\u200b';mir.appendChild(s);
+  // quill tip sits at bottom-left of the SVG (4,60); adjust the -58 / +4 offsets to taste
+  q.style.left=(s.offsetLeft-4)+'px';
+  q.style.top=(s.offsetTop-58+24)+'px';
+  q.classList.remove('w');void q.offsetWidth;q.classList.add('w');
+}
+ta.addEventListener('input',()=>{
+  moveQuill();$('cnt').textContent=ta.value.length;
+  $('post').disabled=ta.value.trim().length<MIN_CHARS;
+});
+
+/* ---- post letter ---- */
+$('post').onclick=()=>{
+  const l={id:'l'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+           cls,text:ta.value.trim(),name:$('nm').value.trim(),t:Date.now()};
+  local.push(l);saveLocal();newId=l.id;
+  if(db){try{db.collection('letters').doc(l.id).set(l).catch(()=>{})}catch(e){}}
+  $('desk').classList.remove('on');render();show('f2');
+};
+
+/* ---- render notice board ---- */
+function render(){
+  const all=new Map();[...local,...remote].forEach(l=>all.set(l.id,l));
+  const list=[...all.values()].sort((a,b)=>b.t-a.t);
+  const board=$('board');board.textContent='';
+  for(const k in CLASSES){
+    const col=document.createElement('div');col.className='col';
+    const h=document.createElement('h3');h.textContent=CLASSES[k];col.appendChild(h);
+    const items=list.filter(l=>l.cls===k);
+    if(!items.length){const e=document.createElement('div');e.className='empty';e.textContent='No letters pinned yet.';col.appendChild(e)}
+    items.forEach(l=>{
+      const n=document.createElement('div');n.className='note'+(l.id===newId?' new':'');
+      n.style.setProperty('--r',(((hash(l.id)%7)-3)*.9)+'deg');   // random tilt of notes
+      const t=document.createElement('div');t.className='t';t.textContent=l.text;n.appendChild(t);
+      if(l.name){const m=document.createElement('div');m.className='n';m.textContent='— '+l.name;n.appendChild(m)}
+      col.appendChild(n);
+    });
+    board.appendChild(col);
+  }
+}
+function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
+render();
+</script>
+</body>
+</html>
